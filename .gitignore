@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+*.suo
+*.user
+*.userprefs
+
+# VS / Rider / VS Code workspace files
+.vs/
+.idea/
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Logs / temp
+*.log
+*.tmp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Claude Code session artifacts (per-user, not shared)
+.claude/
+
+# Release staging — published via GitHub Releases, not tracked in git
+releases/

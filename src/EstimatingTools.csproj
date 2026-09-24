@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Revit target version. Defaults to 2026; override at the command line:
+      dotnet build -p:RevitVersion=2025
+      dotnet build -p:RevitVersion=2027
+    Revit 2025 / 2026 run on .NET 8; Revit 2027 runs on .NET 10, so the
+    target framework follows the version.
+  -->
+  <PropertyGroup>
+    <RevitVersion Condition="'$(RevitVersion)' == ''">2026</RevitVersion>
+    <TargetFramework Condition="'$(RevitVersion)' &gt;= '2027'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(RevitVersion)' &lt; '2027'">net8.0-windows</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>EstimatingTools</AssemblyName>
+    <RootNamespace>EstimatingTools</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release</Configurations>
+    <Platforms>x64</Platforms>
+
+    <!-- Versioning surface — bump on release. -->
+    <Version>1.0.0</Version>
+    <Authors>Scott Buchanan</Authors>
+    <Product>Estimating Tools for Revit</Product>
+  </PropertyGroup>
+
+  <!--
+    Output goes into a per-version sub-folder under bin/ so builds don't
+    overwrite each other. A compile-time symbol REVIT<version> (e.g.
+    REVIT2025) is also defined for any source that needs to branch on the
+    API surface.
+  -->
+  <PropertyGroup>
+    <RevitInstallPath Condition="'$(RevitInstallPath)' == ''">C:\Program Files\Autodesk\Revit $(RevitVersion)</RevitInstallPath>
+    <OutputPath>bin\$(Configuration)-Revit$(RevitVersion)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)-Revit$(RevitVersion)\</IntermediateOutputPath>
+    <DefineConstants>$(DefineConstants);REVIT$(RevitVersion)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitInstallPath)\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitInstallPath)\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Auto-deploy the built DLL + .addin manifest to the user's Revit
+    Addins folder on Debug builds, version-matched to RevitVersion.
+    Skip if Revit is open (DLL locked).
+    Release builds don't auto-deploy — those go to GitHub Releases.
+  -->
+  <Target Name="DeployToRevitAddins" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFolder="$(APPDATA)\Autodesk\Revit\Addins\$(RevitVersion)\"
+          SkipUnchangedFiles="true"
+          ContinueOnError="WarnAndContinue" />
+    <Copy SourceFiles="$(ProjectDir)EstimatingTools.addin"
+          DestinationFolder="$(APPDATA)\Autodesk\Revit\Addins\$(RevitVersion)\"
+          SkipUnchangedFiles="true"
+          ContinueOnError="WarnAndContinue" />
+  </Target>
+
+</Project>

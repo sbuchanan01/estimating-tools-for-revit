@@ -1,0 +1,196 @@
+<Window x:Class="EstimatingTools.UI.CostBreakdownDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cost Breakdown"
+        Width="900" Height="640"
+        ResizeMode="CanResize"
+        MinWidth="720" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2D6B9E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="14,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Heading + pricing-source context -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Cost breakdown" FontSize="16" FontWeight="SemiBold"
+                       Foreground="#2D6B9E" Margin="0,0,0,6"/>
+            <TextBlock x:Name="SourceText" FontSize="11" Foreground="#57636E"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="ItmText" FontSize="11" Foreground="#8A94A0"
+                       TextWrapping="Wrap" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <!-- Action bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="Pick Parts in Revit"
+                    Style="{StaticResource PrimaryButton}"
+                    Click="PickParts_Click" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="Refresh from Selection"
+                    Style="{StaticResource SecondaryButton}"
+                    Click="Refresh_Click"/>
+
+            <TextBlock Grid.Column="2" x:Name="StatusText" VerticalAlignment="Center"
+                       Margin="14,0,0,0" Foreground="#57636E" FontSize="12"
+                       TextTrimming="CharacterEllipsis"/>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button Content="Expand All" Style="{StaticResource SecondaryButton}"
+                        Click="ExpandAll_Click" Margin="0,0,6,0"/>
+                <Button Content="Collapse All" Style="{StaticResource SecondaryButton}"
+                        Click="CollapseAll_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Tree: part header bands, section bands, right-aligned amounts -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#D5DCE3"
+                BorderThickness="1" CornerRadius="4" Padding="6,0,6,6">
+            <TreeView x:Name="ResultsTree"
+                      BorderThickness="0"
+                      Background="White"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <TreeView.Resources>
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TreeViewItem">
+                                    <StackPanel>
+                                        <Border Background="{Binding RowBackground}"
+                                                CornerRadius="{Binding RowCorner}"
+                                                Margin="{Binding RowMargin}"
+                                                Padding="{Binding RowPadding}">
+                                            <Grid>
+                                                <!-- Whole row toggles expand; content sits on top, click-through. -->
+                                                <ToggleButton x:Name="RowToggle" Focusable="False" Cursor="Hand"
+                                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                                    <ToggleButton.Template>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border Background="Transparent"/>
+                                                        </ControlTemplate>
+                                                    </ToggleButton.Template>
+                                                </ToggleButton>
+                                                <DockPanel IsHitTestVisible="False" Margin="{Binding IndentMargin}">
+                                                    <Path x:Name="Arrow" DockPanel.Dock="Left"
+                                                          Width="12" Height="12" Margin="0,0,6,0"
+                                                          VerticalAlignment="Center"
+                                                          Data="M 3 1 L 9 6 L 3 11 Z"
+                                                          Fill="{Binding LabelForeground}"/>
+                                                    <ContentPresenter ContentSource="Header"/>
+                                                </DockPanel>
+                                            </Grid>
+                                        </Border>
+                                        <ItemsPresenter x:Name="ItemsHost" Visibility="Collapsed"/>
+                                    </StackPanel>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsExpanded" Value="True">
+                                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible"/>
+                                            <Setter TargetName="Arrow" Property="Data" Value="M 1 3 L 11 3 L 6 9 Z"/>
+                                        </Trigger>
+                                        <Trigger Property="HasItems" Value="False">
+                                            <Setter TargetName="Arrow" Property="Visibility" Value="Hidden"/>
+                                            <Setter TargetName="RowToggle" Property="Cursor" Value="Arrow"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TreeView.Resources>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <Border BorderBrush="#AAB4BE" BorderThickness="{Binding RuleThickness}"
+                                Padding="{Binding RulePadding}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding Amount}"
+                                           FontFamily="Consolas" FontSize="12"
+                                           FontWeight="{Binding LabelWeight}"
+                                           Foreground="{Binding LabelForeground}"
+                                           Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Label}"
+                                           FontSize="{Binding LabelSize}"
+                                           FontWeight="{Binding LabelWeight}"
+                                           FontStyle="{Binding LabelStyle}"
+                                           Foreground="{Binding LabelForeground}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Detail}" FontSize="11"
+                                           Foreground="{Binding DetailForeground}"
+                                           Margin="10,0,0,0" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </DockPanel>
+                        </Border>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Border>
+
+        <!-- Grand total strip: same navy as the estimate dialogs' total card -->
+        <Border Grid.Row="3" Background="#1F2A38" CornerRadius="4"
+                Padding="14,9" Margin="0,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TotalLabel" Text="Grand total"
+                           Foreground="White" FontWeight="SemiBold" FontSize="13"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" x:Name="TotalValue" Text="$0.00"
+                           Foreground="White" FontWeight="SemiBold" FontSize="14"
+                           FontFamily="Consolas" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Bottom buttons -->
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Save Report…"
+                    Style="{StaticResource SecondaryButton}"
+                    Click="SaveReport_Click"/>
+            <Button Grid.Column="2" Content="Close"
+                    Style="{StaticResource SecondaryButton}"
+                    Click="Close_Click"/>
+        </Grid>
+    </Grid>
+</Window>

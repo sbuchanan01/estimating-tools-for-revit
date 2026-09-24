@@ -1,0 +1,104 @@
+<Window x:Class="EstimatingTools.UI.DiagnoseZonesDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Diagnose Zones"
+        Width="720" Height="560"
+        MinWidth="520" MinHeight="360"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2D6B9E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E0E0E0"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="RowActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#EAF3FA"/>
+            <Setter Property="Foreground" Value="#2D6B9E"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="18">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Refresh" Click="Refresh_Click" Width="100"
+                    Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"/>
+            <Button Content="Close" Click="Close_Click" Width="100"
+                    Style="{StaticResource PrimaryButton}"/>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock FontSize="15" FontWeight="SemiBold"
+                       Foreground="#1F2A38"
+                       Text="Diagnose Zones"/>
+            <TextBlock TextWrapping="Wrap" FontSize="12"
+                       Foreground="#57636E" Margin="0,4,0,10">
+                Lists Fab parts whose <Bold>Estimate Zone</Bold> came out as
+                UNASSIGNED (outside every zone) or MULTIPLE (crossing zone
+                boundaries). Fix by adjusting the Area sketches then run
+                Sync Zones again, or by moving parts inside a single zone.
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock x:Name="CountText" FontSize="12"
+                           Foreground="#333333" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Border BorderBrush="#DDDDDD" BorderThickness="1" Background="White">
+            <DataGrid x:Name="Grid" AutoGenerateColumns="False"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#EEEEEE"
+                      BorderThickness="0"
+                      RowHeight="24"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      CanUserReorderColumns="False"
+                      SelectionMode="Single"
+                      IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Status"
+                                        Binding="{Binding Status}"
+                                        Width="90"/>
+                    <DataGridTextColumn Header="Category"
+                                        Binding="{Binding Category}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Element Id"
+                                        Binding="{Binding IdText}"
+                                        Width="90"/>
+                    <DataGridTextColumn Header="Level"
+                                        Binding="{Binding LevelName}"
+                                        Width="100"/>
+                    <DataGridTextColumn Header="Description"
+                                        Binding="{Binding Description}"
+                                        Width="*"/>
+                    <DataGridTemplateColumn Header="" Width="110">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Show in view"
+                                        Click="Show_Click"
+                                        Style="{StaticResource RowActionButton}"
+                                        Margin="4,2"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </DockPanel>
+</Window>

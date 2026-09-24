@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Estimating Tools for Revit</Name>
+    <Assembly>EstimatingTools.dll</Assembly>
+    <ClientId>880C58EC-0008-4023-8D6E-54C808474486</ClientId>
+    <FullClassName>EstimatingTools.EstimatingToolsApp</FullClassName>
+    <VendorId>ESTTL</VendorId>
+    <VendorDescription>Estimating Tools for Revit</VendorDescription>
+  </AddIn>
+</RevitAddIns>
